@@ -1,0 +1,55 @@
+name: kmemo
+options:
+  bundleIdPrefix: com.kmemo
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  kmemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: kmemo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kmemo
+        INFOPLIST_FILE: kmemo/Info.plist
+        CODE_SIGN_ENTITLEMENTS: kmemo/kmemo.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        OTHER_LDFLAGS:
+          - $(inherited)
+          - -framework
+          - ComposeApp
+          - -lsqlite3
+    dependencies:
+      - target: MemoWidgetExtension
+        embed: true
+    preBuildScripts:
+      - name: Compile Kotlin Framework
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          JAVA_HOME="/Users/dohyunkim/Library/Java/JavaVirtualMachines/corretto-17.0.14/Contents/Home" \
+            ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
+
+  MemoWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MemoWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kmemo.MemoWidget
+        INFOPLIST_FILE: MemoWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: MemoWidget/MemoWidget.entitlements
